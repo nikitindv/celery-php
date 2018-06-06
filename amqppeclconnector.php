@@ -69,7 +69,8 @@ class PECLAMQPConnector extends AbstractAMQPConnector
 		$q = new AMQPQueue($ch);
 		$q->setName($task_id);
 		$q->setFlags(AMQP_AUTODELETE | AMQP_DURABLE);
-		$q->declareQueue();
+        $q->setArgument('x-expires', 86400000);
+        $q->declareQueue();
 		try
 		{
 			$q->bind('celeryresults', $task_id);
@@ -85,7 +86,7 @@ class PECLAMQPConnector extends AbstractAMQPConnector
 
 		$message = $q->get(AMQP_AUTOACK);
 
-		if(!$message) 
+		if(!$message)
 		{
 			if ($removeMessageFromQueue) {
 				$q->delete();
@@ -101,8 +102,8 @@ class PECLAMQPConnector extends AbstractAMQPConnector
 			}
 			$connection->disconnect();
 
-			throw new CeleryException('Response was not encoded using JSON - found ' . 
-				$message->getContentType(). 
+			throw new CeleryException('Response was not encoded using JSON - found ' .
+				$message->getContentType().
 				' - check your CELERY_RESULT_SERIALIZER setting!');
 		}
 
